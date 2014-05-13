@@ -1,0 +1,12 @@
+{
+	"oauth": {
+		"consumer-key": "",
+		"consumer-secret": "",
+		"token": "",
+		"token-secret": ""
+	},
+	"auth-modes": ["whitelist"],
+	"whitelist": [],
+	"log-level": "info",
+	"session-timeout": "5m"
+}
