@@ -8,5 +8,6 @@
 	"auth-modes": ["whitelist"],
 	"whitelist": [],
 	"log-level": "info",
-	"session-timeout": "5m"
+	"session-timeout": "5m",
+	"delete-messages": true
 }

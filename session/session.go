@@ -56,7 +56,6 @@ func Authenticate(senderId int64, sender, message string) (string, bool) {
 				failed = append(failed, authMode)
 			}
 		case AuthModePassword:
-			fmt.Println(password(sender, message))
 			if ok = ok && password(sender, message); !ok {
 				failed = append(failed, authMode)
 			}
@@ -68,7 +67,6 @@ func Authenticate(senderId int64, sender, message string) (string, bool) {
 	authModes := strings.Join(config.TwtSh.AuthModes, "+")
 
 	if len(config.TwtSh.AuthModes) == 0 {
-		ok = true
 		authModes = AuthModeNone
 	}
 

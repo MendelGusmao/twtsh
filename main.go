@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/ChimeraCoder/anaconda"
+	"github.com/MendelGusmao/anaconda"
 	"github.com/araddon/httpstream"
 	"github.com/mrjones/oauth"
 	"log"
@@ -63,11 +63,6 @@ func watchStream() {
 		Secret: config.TwtSh.OAuth.TokenSecret,
 	}
 
-	api := anaconda.NewTwitterApi(
-		token.Token,
-		token.Secret,
-	)
-
 	client := httpstream.NewOAuthClient(&token, func(line []byte) {
 		stream <- line
 	})
@@ -78,6 +73,11 @@ func watchStream() {
 		httpstream.Log(httpstream.ERROR, err.Error())
 		os.Exit(1)
 	}
+
+	twitter := anaconda.NewTwitterApi(
+		token.Token,
+		token.Secret,
+	)
 
 	go func() {
 		for body := range stream {
@@ -95,9 +95,10 @@ func watchStream() {
 				directMessage := object["direct_message"]
 				httpstream.Log(httpstream.INFO, "Received", directMessage.Text, "from", directMessage.SenderScreenName)
 
-				msg, _ := shell.Handle(directMessage)
-				tweet := fmt.Sprintf("d %s %s", directMessage.SenderScreenName, msg)
-				if _, err := api.PostTweet(tweet, nil); err != nil {
+				response, _ := shell.Handle(directMessage)
+				err := respond(twitter, directMessage, response)
+
+				if err != nil {
 					httpstream.Log(httpstream.ERROR, err.Error())
 				}
 
@@ -110,6 +111,7 @@ func watchStream() {
 				}
 
 				config.TwtSh.Friends = object["friends"]
+
 			default:
 				httpstream.Log(httpstream.DEBUG, "Unrecognized JSON", string(body))
 			}
@@ -118,4 +120,31 @@ func watchStream() {
 	}()
 
 	<-done
+}
+
+func respond(api *anaconda.TwitterApi, message types.DirectMessage, response string) error {
+	deleteMessages := config.TwtSh.DeleteMessages != nil && *config.TwtSh.DeleteMessages
+
+	if len(response) > 0 {
+		var err error
+		responseMessage := anaconda.DirectMessage{}
+
+		if responseMessage, err = api.PostDirectMessagesNewToScreenName(response, message.SenderScreenName); err != nil {
+			return err
+		}
+
+		if deleteMessages {
+			if _, err := api.DeleteDirectMessage(responseMessage.Id, false); err != nil {
+				return err
+			}
+		}
+	}
+
+	if deleteMessages {
+		if _, err := api.DeleteDirectMessage(message.Id, false); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

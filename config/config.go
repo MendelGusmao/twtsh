@@ -19,6 +19,7 @@ type TwtShConf struct {
 	Password       *string       `json:"password"`
 	SessionTimeout time.Duration `json:"-"`
 	sessionTimeout *string       `json:"session-timeout"`
+	DeleteMessages *bool         `json:"delete-messages"`
 }
 
 type OAuthConf struct {
@@ -43,7 +44,7 @@ func Load(filename string) error {
 		return err
 	}
 
-	if TwtSh.sessionTimeout != nil {
+	if TwtSh.sessionTimeout != nil && len(*TwtSh.sessionTimeout) > 0 {
 		timeout, err := time.ParseDuration(*TwtSh.sessionTimeout)
 		if err == nil {
 			return err
